@@ -1,11 +1,19 @@
 import AppButton from "@/constans/AppButton";
 import { useCelStore } from "@/store/useCelStore";
+import { useCompletedStore } from "@/store/useCompletedStore";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function AllTasksScreen() {
   const wszystkie = useCelStore((state) => state.goals);
   const clearGoals = useCelStore((state) => state.clearGoals);
   const removeGoal = useCelStore((state) => state.removeGoals);
+  const addCompletedTask = useCompletedStore((state) => state.addCompleted);
+  const completeGoal = (cel: string, index: number) => {
+    addCompletedTask({ task: cel });
+    removeGoal(index);
+  };
+  const completed = useCompletedStore((state) => state.completed);
+  const saveDay = useCompletedStore((state) => state.addDay);
 
   return (
     <View>
@@ -18,17 +26,31 @@ export default function AllTasksScreen() {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
           <View style={styles.pair}>
-            <Text>
-              {index + 1} : {item.cel}
-            </Text>
             <Pressable onPress={() => removeGoal(index)}>
-              <Text style={styles.usuńText}> Usuń</Text>
+              <Text>
+                {index + 1} : {item.cel}
+              </Text>
+            </Pressable>
+            <Pressable onPress={() => completeGoal(item.cel, index)}>
+              <Text style={styles.zaliczoneText}>Zaliczone</Text>
             </Pressable>
           </View>
         )}
         ListEmptyComponent={<Text>Brak Celów</Text>}
       />
       <AppButton title="Wyczyść" onPress={clearGoals} />
+      <FlatList
+        style={styles.completedList}
+        data={completed}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <Text>
+            {index + 1} : {item.task}
+          </Text>
+        )}
+        ListEmptyComponent={<Text>Brak ukończonych zadań</Text>}
+      />
+      <AppButton title="Zapisz Dzień" onPress={saveDay} />
     </View>
   );
 }
@@ -58,8 +80,18 @@ const styles = StyleSheet.create({
   },
   pair: {
     flexDirection: "row",
+    justifyContent: "space-between",
   },
-  usuńText: {
+  zaliczoneText: {
     color: "#4073f5",
+  },
+  completedList: {
+    padding: 20,
+    backgroundColor: "#ffffff",
+    borderWidth: 3,
+    borderColor: "#00ff2a",
+    borderRadius: 6,
+    marginRight: 5,
+    marginLeft: 5,
   },
 });
